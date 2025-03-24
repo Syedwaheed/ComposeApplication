@@ -153,5 +153,4 @@ dependencies {
 //    ksp(libs.hilt.compiler)
     androidTestImplementation(libs.androidx.navigation.testing)
     testImplementation(kotlin("test"))
-    testImplementation(libs.google.truth)
 }
