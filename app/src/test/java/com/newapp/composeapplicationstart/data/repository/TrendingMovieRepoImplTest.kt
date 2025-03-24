@@ -12,8 +12,8 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.every
 import io.mockk.verify
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
