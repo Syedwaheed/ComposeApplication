@@ -3,7 +3,6 @@ package com.newapp.composeapplicationstart.data.repository
 import android.util.Log
 import com.newapp.composeapplicationstart.data.datasource.remote.TMBDApiInterface
 import com.newapp.composeapplicationstart.data.mapper.MovieMapper
-import com.newapp.composeapplicationstart.data.utils.mapToResult
 import com.newapp.composeapplicationstart.domain.model.response.MovieResponse
 import com.newapp.composeapplicationstart.domain.repository.MovieRepository
 import com.newapp.composeapplicationstart.data.utils.DataError

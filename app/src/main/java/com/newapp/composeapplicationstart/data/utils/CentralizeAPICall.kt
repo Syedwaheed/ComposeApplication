@@ -1,46 +1,34 @@
 package com.newapp.composeapplicationstart.data.utils
 
+import android.util.Log
 import com.google.gson.JsonParseException
 import com.newapp.composeapplicationstart.R
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import okio.IOException
 import retrofit2.HttpException
+import kotlin.coroutines.cancellation.CancellationException
 
-fun <T,R> safeApiCall(
+fun <T, R> safeApiCall(
     apiCall: suspend () -> T?,
     mapper: (T) -> R
-): Flow<Result<R, DataError.Network>> = flow {
-    try {
-        val data = apiCall()
-        if(data != null){
-            emit(Result.Success(mapper(data)))
-        }else{
-            emit(Result.Error(DataError.Network.SERIALIZATION))
-        }
-    } catch (e: HttpException) {
-        emit(Result.Error(mapHttpExceptToNetWorkException(e)))
-    } catch (e: IOException) {
-        emit(Result.Error(DataError.Network.NO_INTERNET))
+): Flow<Result<R, DataError.Network>> = flow<Result<R, DataError.Network>> {
+    val data = apiCall()
+    if (data != null) {
+        emit(Result.Success(mapper(data)))
+    } else {
+        emit(Result.Error(DataError.Network.SERIALIZATION))
     }
-    catch (e: Exception) {
-        emit(Result.Error(DataError.Network.UNKNOWN_ERROR))
+}.catch { e ->
+    when (e) {
+        is HttpException -> emit(Result.Error(mapHttpExceptToNetWorkException(e)))
+        is IOException -> emit(Result.Error(DataError.Network.NO_INTERNET))
+        is CancellationException -> throw e // Respect coroutine cancellation
+        else -> emit(Result.Error(DataError.Network.UNKNOWN_ERROR))
     }
 }
 
-fun <T> Flow<T>.mapToResult(): Flow<Result<T, DataError.Network>> = flow{
-    try{
-        collect{ data ->
-            emit(Result.Success(data))
-        }
-    }catch (e:HttpException){
-        emit(Result.Error(mapHttpExceptToNetWorkException(e)))
-    }catch (e:IOException){
-        emit(Result.Error(DataError.Network.NO_INTERNET))
-    }catch (e:Exception){
-        emit(Result.Error(DataError.Network.UNKNOWN_ERROR))
-    }
-}
 
 private fun mapHttpExceptToNetWorkException(e: HttpException): DataError.Network {
     val error = when (e.code()) {
