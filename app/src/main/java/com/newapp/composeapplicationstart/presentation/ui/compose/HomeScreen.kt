@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,7 +67,9 @@ import com.newapp.composeapplicationstart.presentation.utils.MovieUiState
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    state: MovieUiState<List<TrendingMovieResponse?>>
+    state: MovieUiState<List<TrendingMovieResponse?>>,
+    onItemClick: (TrendingMovieResponse?) -> Unit,
+    onDialog:()->Unit
 ) {
 
     LazyColumn(
@@ -79,14 +83,21 @@ fun HomeScreen(
             StreamEveryWhereText()
         }
         item {
-            BannerImage()
+            BannerImage(
+                onDialog = onDialog
+            )
         }
         item {
             TexComposable()
         }
         item {
-            ImageCarousel(modifier = modifier,
-                state)
+            ImageCarousel(
+                modifier = modifier,
+                state,
+                onItemClick = {
+                    onItemClick(it)
+                }
+            )
         }
 
     }
@@ -98,6 +109,7 @@ fun HomeScreen(
 fun ImageCarousel(
     modifier: Modifier = Modifier,
     state: MovieUiState<List<TrendingMovieResponse?>>,
+    onItemClick:(TrendingMovieResponse?)-> Unit
     ) {
     Box(
         modifier = modifier
@@ -115,7 +127,7 @@ fun ImageCarousel(
             }
 
             is MovieUiState.UISuccess -> {
-                val results = (state as MovieUiState.UISuccess).data
+                val results = state.data
                 Log.d("*AccessTokenAPIResponse", "$results")
                 if (results.isNotEmpty()) {
                     val pagerState = rememberPagerState {
@@ -136,6 +148,8 @@ fun ImageCarousel(
                                     scaleY = scale
                                     alpha = alphas
                                 }
+                                .clickable{onItemClick(results[page])}
+                                .testTag("MovieItem${results[page]?.id}")
                         ) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
@@ -149,6 +163,7 @@ fun ImageCarousel(
                                         RoundedCornerShape(30.dp)
                                     )
                                     .fillMaxSize()
+
                             )
                             Box(modifier = Modifier
                                 .fillMaxWidth(0.4f)
@@ -157,7 +172,8 @@ fun ImageCarousel(
                             ){
                                 BlurComposable(
                                     borderColorId = R.color.white,
-                                    backGroundColorId = R.color.gray_alfa)
+                                    backGroundColorId = R.color.gray_alfa
+                                )
                                 Column(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -242,7 +258,7 @@ fun ImageCarousel(
             }
 
             is MovieUiState.UIError -> {
-                val message = (state as MovieUiState.UIError).message.asString()
+                val message = state.message.asString()
                 Text(
                     text = message,
                     color = colorResource(id = R.color.white)
@@ -270,12 +286,15 @@ fun TexComposable(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BannerImage(modifier: Modifier = Modifier) {
+fun BannerImage(modifier: Modifier = Modifier, onDialog: () -> Unit) {
     Box(
         modifier = modifier
             .fillMaxWidth() // Makes the Box take full width
             .height(300.dp) // Set a fixed height for the image banner
             .padding(horizontal = 20.dp) // Padding on sides for a consistent layout
+            .clickable {
+                onDialog()
+            }
     ) {
         Image(
             painter = painterResource(id = R.drawable.posterimage),
@@ -475,7 +494,11 @@ fun DefaultPreview() {
             TrendingMovieResponse(1, "/path2.jpg","dfg", 1.0)
         )
         val state = MovieUiState.UISuccess(mockTrendingMovies)
-        HomeScreen(state = state)
+        HomeScreen(
+            state = state,
+            onItemClick = {},
+            onDialog = {}
+        )
 //        MovieListScreen()
     }
 }

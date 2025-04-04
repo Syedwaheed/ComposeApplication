@@ -1,6 +1,8 @@
 package com.newapp.composeapplicationstart.presentation.utils
 
 import com.newapp.composeapplicationstart.R
+import com.newapp.composeapplicationstart.domain.model.response.TrendingMovieResponse
+import kotlinx.serialization.Serializable
 
 sealed class Screen(val route: String, val name: String, val icon: Int, val selectedIcon: Int) {
     data object Home :
@@ -10,3 +12,7 @@ sealed class Screen(val route: String, val name: String, val icon: Int, val sele
     data object Profile :
         Screen("profile", "Profile Screen", R.drawable.profile, R.drawable.profile_selected)
 }
+@Serializable
+data class Details(val movieResponse: TrendingMovieResponse?)
+@Serializable
+data object Settings
